@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Rewired;
 
 namespace Test
 {
-    public class Player : MonoBehaviour
+    public class Role : MonoBehaviour
     {
-
+        public int id = 0;
+        Player player { get { return ReInput.players.GetPlayer(id); } }
         public int attackSelector = -1;
         public int str = 2;
         public int hp = 10;
@@ -19,6 +21,7 @@ namespace Test
         Rigidbody2D rb = null;
         Animator animator = null;
 
+        bool isControled = false;
         bool isDamaging = false;
         bool isAttacking = false;
         bool isAbleToSelect = true;
@@ -37,13 +40,35 @@ namespace Test
             this.AbleToDo(sec, callback);
         }
 
-        public void Hurt(Player enemy)
+        public void GetDefend(Role enemy)
+        {
+            isControled = true;
+            animator.SetTrigger("exit");
+            Vector2 force = ((transform.position.x - enemy.transform.position.x) > 0
+                ? Vector2.right : Vector2.left
+            ) * 7;
+            rb.AddForce(
+                force,
+                ForceMode2D.Impulse
+            );
+
+            string name = "attack" + attackSelector;
+            this.AbleToDo(0.1f, () => WaitForAnimationFinish(name, () => isControled = false));
+        }
+
+        public void Hurt(Role enemy)
         {
             if (enemy.attackSelector == selector && selector != -1 && CheckFaceEnemy(enemy.transform))
             {
                 shield.transform.position = arrows[selector].transform.position;
                 shield.gameObject.SetActive(true);
                 this.AbleToDo(0.75f, () => shield.gameObject.SetActive(false));
+                Vector2 force = (Vector2)(transform.position - enemy.transform.position) * 1;
+                rb.AddForce(
+                    force,
+                    ForceMode2D.Impulse
+                );
+                enemy.GetDefend(this);
             }
             else
             {
@@ -52,7 +77,10 @@ namespace Test
                 animator.SetTrigger("hurt");
                 WaitForAnimationFinish("hurt", () => isDamaging = false);
                 hp -= enemy.str;
+                if (hp <= 0) Destroy(this.gameObject);
+                isControled = true;
                 Vector2 force = (Vector2)(transform.position - enemy.transform.position + Vector3.up * 2) * 5;
+                this.AbleToDo(0.1f, () => isControled = false);
                 rb.AddForce(
                     force,
                     ForceMode2D.Impulse
@@ -71,8 +99,9 @@ namespace Test
 
         public void Move()
         {
+            if (isControled) return;
             rb.velocity = new Vector2(
-                (Input.GetAxis("Horizontal") * Vector2.right).x * 10,
+                (player.GetAxis("Move Horizontal") * Vector2.right).x * 10,
                 rb.velocity.y
             );
             transform.localScale = new Vector3(transform.localScale.x >= 0
@@ -85,7 +114,7 @@ namespace Test
         public void Jump()
         {
             if (isJumping) return;
-            if (Input.GetKeyDown(KeyCode.V))
+            if (player.GetButtonDown("Jump"))
             {
                 isJumping = true;
                 SelectArrow(-1);
@@ -118,16 +147,19 @@ namespace Test
 
         public void Defend()
         {
-            Debug.Log(1);
-            if (Input.GetKey(KeyCode.J))
+            if (player.GetButton("SelectorTop"))
             {
                 SelectArrow(0);
             }
-            else if (Input.GetKey(KeyCode.K))
+            else if (
+                (transform.localScale.x > 0 && player.GetButton("SelectorFront"))
+                || (transform.localScale.x < 0 && player.GetButton("SelectorBack"))
+
+            )
             {
                 SelectArrow(1);
             }
-            else if (Input.GetKey(KeyCode.L))
+            else if (player.GetButton("SelectorDown"))
             {
                 SelectArrow(2);
             }
@@ -150,7 +182,7 @@ namespace Test
         public void Attack()
         {
             if (isAttacking || selector == -1) return;
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (player.GetButtonDown("Attack"))
             {
                 isAttacking = true;
                 isAbleToSelect = false;
@@ -170,7 +202,7 @@ namespace Test
             switch (other.tag)
             {
                 case "PlayerWeapon":
-                    Hurt(other.transform.parent.GetComponent<Player>());
+                    Hurt(other.transform.parent.GetComponent<Role>());
                     break;
             }
         }
