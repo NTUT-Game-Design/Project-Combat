@@ -17,7 +17,7 @@ public interface ISystem
     UnityEvent Event { get; }
 }
 
-public interface ISettingSystem :ISystem
+public interface ISettingSystem : ISystem
 {
     //Settings value
     string Resolution { get; set; }//EX: "1920*1080"
