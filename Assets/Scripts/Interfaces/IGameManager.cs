@@ -6,12 +6,12 @@ public interface IGameManager
     /// <summary>
     /// 
     /// </summary>
-    ISettingSystem SettingSystem { get; }
+    SettingSystem SettingSystem { get; }
 
     /// <summary>
     /// 
     /// </summary>
-    IInputSystem InputSystem { get; }
+    InputSystem InputSystem { get; }
 
 
 }
