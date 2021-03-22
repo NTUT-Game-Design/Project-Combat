@@ -3,6 +3,10 @@ using UnityEngine;
 
 public interface ISettingSystem : ISystem
 {
+
+}
+public interface ISettingData
+{
     /// <summary>
     /// Set the value size
     /// </summary>

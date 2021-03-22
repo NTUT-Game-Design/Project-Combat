@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public interface ISceneManager
+public interface ISceneManager : ISystem
 {
     /// <summary>
     /// Change scenes

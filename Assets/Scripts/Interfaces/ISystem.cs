@@ -14,5 +14,5 @@ public interface ISystem
     /// <summary>
     /// A readonly event use to send boradcast who listen me
     /// </summary>
-    UnityEvent Event { get; }
+    UnityEvent Event { get;}
 }

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public interface IAudioManager
+public interface IAudioManager : ISystem
 {
     /// <summary>
     /// Play sounds
