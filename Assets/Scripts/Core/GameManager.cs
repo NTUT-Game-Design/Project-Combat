@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour, IGameManager
 {
-    static GameManager instance = null;
+    public static GameManager instance = null;
 
-    public static SettingSystem SettingSystem;
-    public static InputSystem InputSystem;
-    public static DataSystem DataSystem;
+    public SettingSystem SettingSystem;
+    public InputSystem InputSystem;
 
     private void Awake()
     {
@@ -17,14 +16,20 @@ public class GameManager : MonoBehaviour, IGameManager
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("GameManager Intial.");
+            Debug.Log("GameManager" + " Intial.");
         }
-
         else
         {
             Destroy(gameObject);
-            Debug.Log("More than 1 GameManager.");
+            Debug.Log("More than 1 " + "GameManager" + " .");
         }
         #endregion
+    }
+    private void Update()
+    {
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    Instantiate(gameObject);
+        //}
     }
 }
