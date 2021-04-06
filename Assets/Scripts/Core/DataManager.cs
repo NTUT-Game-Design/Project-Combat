@@ -1,13 +1,25 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using System.IO;
+using System.Text;
 using System;
-
+using TMPro;
 public class DataManager : MonoBehaviour, IDataSystem
 {
     public static DataManager instance = null;
     public UnityEvent Event { get;}
+    public TextMeshProUGUI test;
+
+    FileStream path;
+    enum DataParts
+    {
+        Setting,
+        KeyboardKeys,
+        ControllerKeys
+    }
+
     public void AddListener()
     {
        
@@ -22,28 +34,10 @@ public class DataManager : MonoBehaviour, IDataSystem
     }
     public void SaveTest()
     {
-        var a = new DataTest();
-        var asd = JsonUtility.ToJson(a);
-        //var ddd = System.Text.Encoding.UTF8.GetBytes(asd);
-        //var filePath = Application.dataPath + "/Resources" + "/" + "Testfile.txt";
-        //System.IO.File.WriteAllBytes(filePath, ddd);
-        ////System.IO.File.Create(filePath);
-        //Debug.Log(filePath);
-        //System.IO.File.ReadAllBytes(filePath);
-        //var load = JsonUtility.FromJson<DataTest>(asd);
-        //Debug.Log(load.me);
-        try
+        var data = ReadData(DataParts.KeyboardKeys);
+        foreach(var item in data)
         {
-            FileStream fsFile = new FileStream(Application.dataPath + "/Resources" + "/" + "Testfile.ini", FileMode.OpenOrCreate);
-            StreamWriter swWriter = new StreamWriter(fsFile);
-            //寫入數據
-            swWriter.WriteLine("Hello Wrold.");
-            swWriter.WriteLine(asd);
-            swWriter.Close();
-        }
-        catch (Exception e)
-        {
-            throw e;
+            Debug.Log(item);
         }
     }
     private void Awake()
@@ -53,7 +47,7 @@ public class DataManager : MonoBehaviour, IDataSystem
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log( "DataManager" +" Intial.");
+            Debug.Log("DataManager" +" Intial.");
         }
 
         else
@@ -63,6 +57,17 @@ public class DataManager : MonoBehaviour, IDataSystem
         }
         #endregion
     }
+    private void Start()
+    {
+        try
+        {
+            path = new FileStream(Application.dataPath + "/Resources/Data/Data.ini", FileMode.OpenOrCreate);
+        }
+        catch(Exception e)
+        {
+            throw e;
+        }
+    }
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -70,23 +75,33 @@ public class DataManager : MonoBehaviour, IDataSystem
             SaveTest();
         }
     }
-}
-[SerializeField]
-public class DataTest
-{
-    public int aere = 13213213;
-    public string asdasf = "asdh;kjhlkjad";
-    public bool quest;
-    public name me;
-    public struct name
+    List<string> ReadData(DataParts part)
     {
-        public string first;
-        public string last;
-    }
-    public DataTest()
-    {
-        me.first = "我";
-        me.last = "是";
-        quest = true;
+        List<string> tempString = new List<string>();
+        using(StreamReader stReader = new StreamReader(path))
+        {
+            string str;
+            while ((str = stReader.ReadLine()) != null)
+            {
+                tempString.Add(str);
+            }
+            stReader.Close();
+        }
+        int index = 1 + tempString.FindIndex(x => x.Contains("[" +part.ToString() + "]"));
+        List<string> data = new List<string>();
+        while (tempString[index] != "")
+        {
+            char[] tempData = tempString[index].ToCharArray();
+            int start = Array.IndexOf(tempData, '=');
+            int end = Array.IndexOf(tempData, ';');
+            StringBuilder value = new StringBuilder();
+            for(int i = start+1;  i < end; i++)
+            {
+                value.Append(tempData[i]);
+            }
+            data.Add(value.ToString());
+            index++;
+        }
+        return data;
     }
 }
