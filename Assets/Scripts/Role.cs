@@ -19,16 +19,20 @@ namespace Test
 
         [SerializeField] Image[] arrows = new Image[3];
         [SerializeField] Image shield = null;
+        [SerializeField] Image weapon;
         [SerializeField] bool testMode = false;
         Rigidbody2D rb = null;
         Animator animator = null;
         PlayerActions Actions;
+        GameObject nowWeapon;
+        GameObject weaponOnLoad;
 
         bool isControled = false;
         bool isDamaging = false;
         bool isAttacking = false;
         bool isAbleToSelect = true;
         bool isJumping = false;
+        bool isNearWeapon = false;
 
         float jumpTimeCounter = 0f;
         /// <summary>
@@ -226,6 +230,16 @@ namespace Test
                 );
             }
         }
+        public void PickUp()
+        {
+            if(isNearWeapon && player.GetButtonDown(Actions.Actions[5]))
+            {
+                nowWeapon = weaponOnLoad;
+                weapon.sprite = nowWeapon.GetComponent<SpriteRenderer>().sprite;
+                Debug.Log(nowWeapon.name);
+            }
+
+        }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
@@ -234,12 +248,26 @@ namespace Test
                 case "PlayerWeapon":
                     Hurt(other.transform.parent.GetComponent<Role>());
                     break;
+                case "NewWeapon":
+                    isNearWeapon = true;
+                    weaponOnLoad = other.gameObject;
+                    break;
+            }
+        }
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            switch (collision.tag)
+            {
+                case "NewWeapon":
+                    isNearWeapon = false;
+                    break;
             }
         }
 
         private void OnCollisionEnter2D(Collision2D other)
         {
             isJumping = false;
+            
         }
 
         private void Awake()
@@ -262,8 +290,10 @@ namespace Test
             }
             Move();
             Jump();
-            Selector();
+            if(Actions.Id == 0)
+                Selector();
             Combat();
+            PickUp();
         }
     }
 
@@ -287,11 +317,14 @@ public class PlayerActions
     /// Actions ID: 0.MoveHorizontal 1.Jump 2.Dash 3.Attack 4.Defence 5.PickUp 6.SpacialAtk 7.Selector
     /// </summary>
     public string[] Actions = { "MoveHorizontal", "Jump", "Dash", "Attack", "Defence", "PickUp", "SpacialAtk", "Selector" };
+    /// <summary>
+    /// 0.Keyborad 1. Controller
+    /// </summary>
     public int Id;
-    /// <param name="id">1.Keyborad 2. Controller</param>
+    /// <param name="id">0.Keyborad 1. Controller</param>
     public PlayerActions(int id)
     {
-        if(id == 1)//Keyboard Control
+        if(id == 0)//Keyboard Control
         {
             for(var i = 0; i < Actions.Length; i++)
             {
@@ -299,7 +332,7 @@ public class PlayerActions
             }
             Id = id; 
         }
-        else if(id == 2)//Controller Control
+        else if(id == 1)//Controller Control
         {
             for (var i = 0; i < Actions.Length; i++)
             {
